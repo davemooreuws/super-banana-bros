@@ -1,0 +1,73 @@
+/* ==========================================================================
+   Suga - Colors & Type (from Claude Design: Game layout with Suga branding)
+   Fonts (Geist / Geist Mono / Press Start 2P) are loaded via <link> tags in
+   the document head, so the remote @import is intentionally omitted here.
+   ========================================================================== */
+
+:root {
+	/* --- Core neutrals (monochrome foundation) --- */
+	--suga-black: #0a0a0a;
+	--suga-ink: #111113;
+	--suga-graphite: #1c1c1f;
+	--suga-slate-900: #26262a;
+	--suga-slate-700: #3f3f46;
+	--suga-slate-500: #71717a;
+	--suga-slate-400: #a1a1aa;
+	--suga-slate-300: #d4d4d8;
+	--suga-slate-200: #e4e4e7;
+	--suga-slate-100: #f1f1f3;
+	--suga-slate-50: #f7f7f8;
+	--suga-white: #ffffff;
+
+	/* --- Accent (single, restrained emerald) --- */
+	--suga-green-50: #e7f8ee;
+	--suga-green-100: #c8efd6;
+	--suga-green-300: #6cd39b;
+	--suga-green-500: #17a668;
+	--suga-green-700: #0e6b43;
+	--suga-green-900: #073b25;
+
+	/* --- Semantic (status) --- */
+	--suga-success: #00c27a;
+	--suga-success-bg: #0a1f17;
+	--suga-success-fg: #7ee3b4;
+
+	--suga-warning: #f5a524;
+	--suga-warning-bg: #221809;
+	--suga-warning-fg: #ffc978;
+
+	--suga-danger: #ff3b5c;
+	--suga-danger-bg: #230d11;
+	--suga-danger-fg: #ff8a9e;
+
+	--suga-info: #3e8bff;
+	--suga-info-bg: #0d1628;
+	--suga-info-fg: #8ab4ff;
+
+	/* --- Type scale --- */
+	--font-sans:
+		"Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+		sans-serif;
+	--font-mono:
+		"Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+	--font-pixel: "Press Start 2P", var(--font-mono);
+
+	--fs-body: 15px;
+	--lh-body: 1.55;
+	--fs-small: 13px;
+	--fs-micro: 12px;
+
+	/* --- Radii --- */
+	--r-lg: 6px;
+	--r-xl: 8px;
+	--r-2xl: 12px;
+
+	/* --- Game palette --- */
+	--game-sky: #8ed4ee;
+	--game-banana: #ffce3b;
+	--game-banana-br: #c98f1b;
+	--game-plum: #9b4e97;
+	--game-plum-br: #6e3169;
+	--game-ground: #7a5230;
+	--game-grass: #56a82e;
+}

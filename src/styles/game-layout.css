@@ -1,0 +1,326 @@
+/* ==========================================================================
+   Super Banana Bros - arcade shell layout
+   Ported from Claude Design "Game layout with Suga branding".
+   ========================================================================== */
+
+@keyframes sbb-blink {
+	0%,
+	55% {
+		opacity: 1;
+	}
+	56%,
+	100% {
+		opacity: 0;
+	}
+}
+
+.sbb-root {
+	min-height: 100vh;
+	background: var(--suga-black);
+	color: var(--suga-white);
+	font-family: var(--font-sans);
+	display: flex;
+	flex-direction: column;
+}
+
+.sbb-pixel {
+	font-family: var(--font-pixel);
+	letter-spacing: 0.02em;
+}
+
+/* ---------- Top nav ---------- */
+.sbb-header {
+	height: 56px;
+	border-bottom: 1px solid var(--suga-slate-900);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 24px;
+	position: sticky;
+	top: 0;
+	background: rgba(10, 10, 10, 0.8);
+	backdrop-filter: blur(12px);
+	z-index: 10;
+}
+.sbb-brand {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+.sbb-logo-box {
+	width: 28px;
+	height: 28px;
+	background: #17171a;
+	border: 1px solid var(--suga-slate-700);
+	border-radius: var(--r-xl);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.sbb-brand-title {
+	font-size: 12px;
+}
+.sbb-chip {
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--suga-slate-400);
+	border: 1px solid var(--suga-slate-900);
+	border-radius: var(--r-xl);
+	padding: 2px 8px;
+}
+.sbb-nav {
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	font-size: 13px;
+	color: var(--suga-slate-300);
+}
+.sbb-nav a {
+	color: var(--suga-slate-300);
+	text-decoration: none;
+}
+.sbb-nav a:hover {
+	color: var(--game-banana);
+}
+
+/* ---------- Main ---------- */
+.sbb-main {
+	flex: 1;
+	width: 100%;
+	max-width: 1040px;
+	margin: 0 auto;
+	padding: 40px 24px 64px;
+	box-sizing: border-box;
+}
+
+/* HUD bar */
+.sbb-hud {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	border: 1px solid var(--suga-slate-900);
+	border-bottom: none;
+	border-radius: 12px 12px 0 0;
+	background: #0f0f10;
+	padding: 12px 20px;
+	font-family: var(--font-pixel);
+	font-size: 11px;
+}
+.sbb-hud-left {
+	display: flex;
+	align-items: center;
+	gap: 28px;
+}
+.sbb-hud-bananas {
+	color: var(--game-banana);
+}
+.sbb-hud-lives {
+	color: var(--suga-slate-300);
+}
+.sbb-hud-world {
+	color: var(--suga-slate-500);
+}
+.sbb-hud-time {
+	color: var(--suga-slate-300);
+}
+
+/* Game window */
+.sbb-window {
+	position: relative;
+	border: 1px solid var(--suga-slate-900);
+	border-radius: 0 0 12px 12px;
+	overflow: hidden;
+	aspect-ratio: 16 / 9;
+	background: var(--game-sky);
+}
+.sbb-window canvas {
+	display: block;
+}
+
+.sbb-scanlines {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 3;
+	background: repeating-linear-gradient(
+		0deg,
+		rgba(0, 0, 0, 0.1) 0px,
+		rgba(0, 0, 0, 0.1) 1px,
+		transparent 1px,
+		transparent 4px
+	);
+}
+
+.sbb-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 4;
+	background: rgba(10, 10, 10, 0.62);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 24px;
+	cursor: pointer;
+	border: none;
+	width: 100%;
+	color: inherit;
+	font: inherit;
+	text-align: center;
+}
+.sbb-overlay-title {
+	font-family: var(--font-pixel);
+	font-size: 34px;
+	color: var(--game-banana);
+	text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.55);
+	line-height: 1.5;
+}
+.sbb-overlay-title.is-lost {
+	color: var(--suga-danger);
+}
+.sbb-overlay-sub {
+	font-family: var(--font-pixel);
+	font-size: 13px;
+	color: var(--suga-white);
+	animation: sbb-blink 1.2s step-end infinite;
+}
+.sbb-overlay-meta {
+	font-family: var(--font-pixel);
+	font-size: 11px;
+	color: var(--suga-slate-300);
+	line-height: 1.8;
+}
+
+/* Controls row */
+.sbb-controls {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+	margin-top: 20px;
+	flex-wrap: wrap;
+}
+.sbb-controls-left {
+	display: flex;
+	align-items: center;
+	gap: 24px;
+	flex-wrap: wrap;
+}
+.sbb-control {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.sbb-control span {
+	font-size: 13px;
+	color: var(--suga-slate-400);
+}
+.sbb-kbd {
+	font-family: var(--font-mono);
+	font-size: 12px;
+	color: var(--suga-white);
+	background: #17171a;
+	border: 1px solid var(--suga-slate-700);
+	border-bottom-width: 3px;
+	border-radius: var(--r-lg);
+	padding: 5px 9px;
+}
+.sbb-kbd.is-wide {
+	padding: 5px 14px;
+}
+.sbb-tagline {
+	font-size: 13px;
+	color: var(--suga-slate-500);
+	margin: 0;
+}
+
+/* Cards */
+.sbb-cards {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px;
+	margin-top: 40px;
+}
+.sbb-card {
+	border: 1px solid var(--suga-slate-900);
+	border-radius: var(--r-2xl);
+	background: #0f0f10;
+	padding: 20px 24px;
+}
+.sbb-eyebrow {
+	font-family: var(--font-mono);
+	font-size: 11px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--suga-slate-500);
+	margin-bottom: 14px;
+}
+.sbb-tips {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	font-size: 14px;
+	color: var(--suga-slate-300);
+}
+.sbb-tip {
+	display: flex;
+	gap: 10px;
+}
+.sbb-tip-num {
+	color: var(--game-banana);
+	font-family: var(--font-mono);
+}
+.sbb-scores {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	font-family: var(--font-mono);
+	font-size: 13px;
+}
+.sbb-score-row {
+	display: flex;
+	justify-content: space-between;
+	color: var(--suga-slate-300);
+	padding: 4px 0;
+	border-bottom: 1px solid #17171a;
+}
+.sbb-score-rank {
+	color: var(--suga-slate-500);
+	margin-right: 12px;
+}
+.sbb-score-pts {
+	color: var(--game-banana);
+}
+
+/* Footer */
+.sbb-footer {
+	height: 44px;
+	border-top: 1px solid var(--suga-slate-900);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 24px;
+	font-family: var(--font-mono);
+	font-size: 12px;
+	color: var(--suga-slate-400);
+	background: #0f0f10;
+}
+.sbb-footer-brand {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--suga-white);
+	text-decoration: none;
+}
+.sbb-footer-brand:hover {
+	color: var(--game-banana);
+}
+
+@media (max-width: 720px) {
+	.sbb-cards {
+		grid-template-columns: 1fr;
+	}
+	.sbb-overlay-title {
+		font-size: 26px;
+	}
+}

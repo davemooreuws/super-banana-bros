@@ -1,5 +1,7 @@
 
 @import "tailwindcss";
+@import "./styles/suga-tokens.css";
+@import "./styles/game-layout.css";
 
 * {
   box-sizing: border-box;
@@ -11,7 +13,14 @@ body,
   min-height: 100%;
 }
 
+html,
+body {
+  background: var(--suga-black);
+}
+
 body {
   margin: 0;
+  font-family: var(--font-sans);
+  color: var(--suga-white);
 }
 

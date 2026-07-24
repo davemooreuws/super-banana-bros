@@ -1,4 +1,8 @@
-Welcome to your new TanStack Start app!
+# 🍌 Super Banana Bros
+
+![Super Banana Bros](public/og.png)
+
+A potassium-boosting masterpiece. A Mario-style platformer starring a banana, across three themed worlds (Grass, Ice, Fire). Built with TanStack Start + Kaplay, deployed with Suga.
 
 # Getting Started
 
