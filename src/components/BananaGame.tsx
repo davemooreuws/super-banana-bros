@@ -1,5 +1,5 @@
 import kaplay from "kaplay";
-import { useEffect, useRef } from "react";
+import { type MutableRefObject, useEffect, useRef } from "react";
 
 export type GamePhase = "playing" | "won" | "lost";
 export type GameState = {
@@ -11,9 +11,17 @@ export type GameState = {
 	world: string;
 };
 
+export type GameControls = {
+	jump: () => void;
+	release: () => void;
+	reset: () => void;
+};
+
 type BananaGameProps = {
 	onState?: (state: GameState) => void;
 	lives?: number;
+	autoRun?: boolean;
+	controlsRef?: MutableRefObject<GameControls | null>;
 };
 
 type RGB = [number, number, number];
@@ -49,7 +57,12 @@ type Level = {
  * engine only boots inside useEffect. HUD state (bananas / lives / time /
  * world) is reported up to React via onState.
  */
-export default function BananaGame({ onState, lives = 3 }: BananaGameProps) {
+export default function BananaGame({
+	onState,
+	lives = 3,
+	autoRun = false,
+	controlsRef,
+}: BananaGameProps) {
 	const containerRef = useRef<HTMLDivElement | null>(null);
 	const kRef = useRef<ReturnType<typeof kaplay> | null>(null);
 	const teardownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -57,7 +70,10 @@ export default function BananaGame({ onState, lives = 3 }: BananaGameProps) {
 	onStateRef.current = onState;
 	const initialLivesRef = useRef(lives);
 	initialLivesRef.current = lives;
+	const autoRunRef = useRef(autoRun);
+	autoRunRef.current = autoRun;
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: boots the engine exactly once; referenced values are stable refs
 	useEffect(() => {
 		const root = containerRef.current;
 		if (!root) return;
@@ -253,6 +269,29 @@ export default function BananaGame({ onState, lives = 3 }: BananaGameProps) {
 					world: level.world,
 				});
 			};
+
+			let currentPlayer: any = null;
+			const doJump = () => {
+				if (phase !== "playing" || !currentPlayer) return;
+				if (currentPlayer.isGrounded()) currentPlayer.jump(JUMP);
+			};
+			const cutJump = () => {
+				if (currentPlayer?.vel && currentPlayer.vel.y < 0) {
+					currentPlayer.vel.y *= 0.4;
+				}
+			};
+			const doReset = () => {
+				currentLevel = 0;
+				livesLeft = initialLivesRef.current;
+				k.go("game");
+			};
+			if (controlsRef) {
+				controlsRef.current = {
+					jump: doJump,
+					release: cutJump,
+					reset: doReset,
+				};
+			}
 
 			// ---- scene ------------------------------------------------------------
 			k.scene("game", () => {
@@ -504,12 +543,11 @@ export default function BananaGame({ onState, lives = 3 }: BananaGameProps) {
 					}
 				};
 
-				const jump = () => {
-					if (phase === "playing" && player.isGrounded()) player.jump(JUMP);
-				};
-				k.onKeyPress("space", jump);
-				k.onKeyPress("up", jump);
-				k.onKeyPress("w", jump);
+				currentPlayer = player;
+				k.onKeyPress("space", doJump);
+				k.onKeyPress("up", doJump);
+				k.onKeyPress("w", doJump);
+				k.onKeyRelease("space", cutJump);
 
 				k.onUpdate("enemy", (e: any) => {
 					if (phase !== "playing") return;
@@ -552,10 +590,15 @@ export default function BananaGame({ onState, lives = 3 }: BananaGameProps) {
 
 					if (phase !== "playing") return;
 
-					// horizontal movement: snappy on solid ground, slidey on ice
-					const left = k.isKeyDown("left") || k.isKeyDown("a");
-					const right = k.isKeyDown("right") || k.isKeyDown("d");
-					const target = (right ? SPEED : 0) - (left ? SPEED : 0);
+					// horizontal movement: auto-run on mobile, keys on desktop
+					let target: number;
+					if (autoRunRef.current) {
+						target = SPEED; // banana runs to the right on its own
+					} else {
+						const left = k.isKeyDown("left") || k.isKeyDown("a");
+						const right = k.isKeyDown("right") || k.isKeyDown("d");
+						target = (right ? SPEED : 0) - (left ? SPEED : 0);
+					}
 					const rate = level.slippery ? 700 : 6000;
 					const step = rate * k.dt();
 					vx += Math.max(-step, Math.min(step, target - vx));
@@ -590,6 +633,7 @@ export default function BananaGame({ onState, lives = 3 }: BananaGameProps) {
 					} catch {}
 				}
 				kRef.current = null;
+				if (controlsRef) controlsRef.current = null;
 				while (root.firstChild) root.removeChild(root.firstChild);
 				teardownRef.current = null;
 			}, 150);

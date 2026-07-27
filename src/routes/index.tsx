@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
-import BananaGame, { type GameState } from "../components/BananaGame";
+import { useCallback, useEffect, useRef, useState } from "react";
+import BananaGame, {
+	type GameControls,
+	type GameState,
+} from "../components/BananaGame";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -23,14 +26,39 @@ const INITIAL: GameState = {
 };
 
 function Home() {
+	const isMobile = useIsMobile();
+	if (isMobile === null) {
+		return (
+			<div
+				className="min-h-screen"
+				style={{ background: "var(--suga-black)" }}
+			/>
+		);
+	}
+	return isMobile ? <MobileGame /> : <DesktopHome />;
+}
+
+function useIsMobile() {
+	const [isMobile, setIsMobile] = useState<boolean | null>(null);
+	useEffect(() => {
+		const mq = window.matchMedia("(pointer: coarse)");
+		const update = () => setIsMobile(mq.matches);
+		update();
+		mq.addEventListener("change", update);
+		return () => mq.removeEventListener("change", update);
+	}, []);
+	return isMobile;
+}
+
+function DesktopHome() {
 	const [started, setStarted] = useState(false);
-	const [runId, setRunId] = useState(0);
 	const [game, setGame] = useState<GameState>(INITIAL);
+	const controlsRef = useRef<GameControls | null>(null);
 
 	const start = useCallback(() => setStarted(true), []);
 	const restart = useCallback(() => {
 		setGame(INITIAL);
-		setRunId((r) => r + 1);
+		controlsRef.current?.reset();
 	}, []);
 
 	useEffect(() => {
@@ -100,7 +128,7 @@ function Home() {
 				{/* Game window */}
 				<div className="sbb-window">
 					{started ? (
-						<BananaGame key={runId} onState={setGame} />
+						<BananaGame onState={setGame} controlsRef={controlsRef} />
 					) : (
 						<ReadyScene />
 					)}
@@ -208,6 +236,105 @@ function Home() {
 					<SugaMark />
 					<span>Deployed with Suga</span>
 				</a>
+			</footer>
+		</div>
+	);
+}
+
+function MobileGame() {
+	const [started, setStarted] = useState(false);
+	const [game, setGame] = useState<GameState>(INITIAL);
+	const controlsRef = useRef<GameControls | null>(null);
+
+	const start = useCallback(() => setStarted(true), []);
+	const restart = useCallback(() => {
+		setGame(INITIAL);
+		controlsRef.current?.reset();
+	}, []);
+
+	const playing = started && game.phase === "playing";
+	const won = started && game.phase === "won";
+	const lost = started && game.phase === "lost";
+	const bananas = String(game.bananas).padStart(2, "0");
+
+	return (
+		<div
+			className="sbb-m-root dark"
+			onPointerDown={(e) => {
+				if (!playing) return;
+				e.preventDefault();
+				controlsRef.current?.jump();
+			}}
+			onPointerUp={() => playing && controlsRef.current?.release()}
+			onPointerCancel={() => playing && controlsRef.current?.release()}
+		>
+			<div className="sbb-m-stage">
+				{started ? (
+					<BananaGame autoRun controlsRef={controlsRef} onState={setGame} />
+				) : (
+					<ReadyScene />
+				)}
+
+				<div className="sbb-scanlines" />
+
+				<div className="sbb-m-hud" translate="no">
+					<span className="sbb-m-hud-bananas">
+						🍌 {bananas}/{game.total}
+					</span>
+					<span className="sbb-m-hud-world">{game.world}</span>
+					<span className="sbb-m-hud-lives">♥ ×{game.lives}</span>
+				</div>
+				<span className="sbb-m-badge" translate="no">
+					auto-run
+				</span>
+
+				{playing && (
+					<div className="sbb-m-hint" translate="no">
+						tap anywhere · hold to jump higher
+					</div>
+				)}
+
+				{!started && (
+					<div className="sbb-overlay sbb-m-overlay">
+						<span className="sbb-overlay-title">
+							SUPER
+							<br />
+							BANANA BROS
+						</span>
+						<button type="button" className="sbb-m-btn" onClick={start}>
+							PLAY
+						</button>
+					</div>
+				)}
+
+				{won && (
+					<div className="sbb-overlay sbb-m-overlay">
+						<span className="sbb-overlay-title">YOU WIN!</span>
+						<span className="sbb-overlay-meta">
+							{game.bananas}/{game.total} bananas
+						</span>
+						<button type="button" className="sbb-m-btn" onClick={restart}>
+							PLAY AGAIN
+						</button>
+					</div>
+				)}
+
+				{lost && (
+					<div className="sbb-overlay sbb-m-overlay">
+						<span className="sbb-overlay-title is-lost">GAME OVER</span>
+						<span className="sbb-overlay-meta">
+							{game.bananas}/{game.total} bananas
+						</span>
+						<button type="button" className="sbb-m-btn" onClick={restart}>
+							RETRY
+						</button>
+					</div>
+				)}
+			</div>
+
+			<footer className="sbb-m-footer">
+				<SugaMark />
+				<span>Deployed with Suga</span>
 			</footer>
 		</div>
 	);
