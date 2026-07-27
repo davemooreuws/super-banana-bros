@@ -4,17 +4,13 @@ import BananaGame, {
 	type GameControls,
 	type GameState,
 } from "../components/BananaGame";
+import {
+	ScoreList,
+	SubmitScore,
+	useLeaderboard,
+} from "../components/leaderboard-ui";
 
 export const Route = createFileRoute("/")({ component: Home });
-
-const HIGH_SCORES = [
-	{ rank: "1.", name: "DAVE", score: "128,400" },
-	{ rank: "2.", name: "JYE", score: "97,210" },
-	{ rank: "3.", name: "TIM", score: "88,050" },
-	{ rank: "4.", name: "RYAN", score: "61,900" },
-	{ rank: "5.", name: "RAK", score: "54,300" },
-	{ rank: "6.", name: "YOU?", score: "———" },
-];
 
 const INITIAL: GameState = {
 	phase: "playing",
@@ -23,6 +19,7 @@ const INITIAL: GameState = {
 	lives: 3,
 	time: 0,
 	world: "1-1",
+	score: 0,
 };
 
 function Home() {
@@ -53,16 +50,27 @@ function useIsMobile() {
 function DesktopHome() {
 	const [started, setStarted] = useState(false);
 	const [game, setGame] = useState<GameState>(INITIAL);
+	const [you, setYou] = useState<string | null>(null);
 	const controlsRef = useRef<GameControls | null>(null);
+	const { scores, refresh } = useLeaderboard();
 
 	const start = useCallback(() => setStarted(true), []);
 	const restart = useCallback(() => {
 		setGame(INITIAL);
 		controlsRef.current?.reset();
 	}, []);
+	const onSubmitted = useCallback(
+		(name: string) => {
+			setYou(name);
+			refresh();
+		},
+		[refresh],
+	);
 
 	useEffect(() => {
 		const onKey = (e: KeyboardEvent) => {
+			// don't hijack typing in the initials field
+			if (e.target instanceof HTMLInputElement) return;
 			const k = e.code;
 			if (!started) {
 				if (k === "Space" || k === "Enter") {
@@ -72,7 +80,7 @@ function DesktopHome() {
 				return;
 			}
 			if (game.phase !== "playing") {
-				if (k === "Space" || k === "Enter" || k === "KeyR") {
+				if (k === "KeyR") {
 					e.preventDefault();
 					restart();
 				}
@@ -146,24 +154,16 @@ function DesktopHome() {
 						</button>
 					)}
 
-					{won && (
-						<button type="button" className="sbb-overlay" onClick={restart}>
-							<span className="sbb-overlay-title">YOU WIN!</span>
-							<span className="sbb-overlay-meta">
-								{game.bananas}/{game.total} bananas · {timeStr}s
+					{(won || lost) && (
+						<div className="sbb-overlay">
+							<span className={`sbb-overlay-title${lost ? " is-lost" : ""}`}>
+								{won ? "YOU WIN!" : "GAME OVER"}
 							</span>
-							<span className="sbb-overlay-sub">PRESS START TO PLAY AGAIN</span>
-						</button>
-					)}
-
-					{lost && (
-						<button type="button" className="sbb-overlay" onClick={restart}>
-							<span className="sbb-overlay-title is-lost">GAME OVER</span>
-							<span className="sbb-overlay-meta">
-								{game.bananas}/{game.total} bananas collected
-							</span>
-							<span className="sbb-overlay-sub">PRESS START TO RETRY</span>
-						</button>
+							<SubmitScore score={game.score} onSubmitted={onSubmitted} />
+							<button type="button" className="sbb-btn" onClick={restart}>
+								{won ? "PLAY AGAIN" : "RETRY"}
+							</button>
+						</div>
 					)}
 				</div>
 
@@ -210,17 +210,7 @@ function DesktopHome() {
 					</div>
 					<div id="scores" className="sbb-card">
 						<div className="sbb-eyebrow">High scores</div>
-						<div className="sbb-scores" translate="no">
-							{HIGH_SCORES.map((s) => (
-								<div key={s.name} className="sbb-score-row">
-									<span>
-										<span className="sbb-score-rank">{s.rank}</span>
-										{s.name}
-									</span>
-									<span className="sbb-score-pts">{s.score}</span>
-								</div>
-							))}
-						</div>
+						<ScoreList scores={scores} highlight={you} />
 					</div>
 				</div>
 			</main>
@@ -244,13 +234,22 @@ function DesktopHome() {
 function MobileGame() {
 	const [started, setStarted] = useState(false);
 	const [game, setGame] = useState<GameState>(INITIAL);
+	const [you, setYou] = useState<string | null>(null);
 	const controlsRef = useRef<GameControls | null>(null);
+	const { scores, refresh } = useLeaderboard();
 
 	const start = useCallback(() => setStarted(true), []);
 	const restart = useCallback(() => {
 		setGame(INITIAL);
 		controlsRef.current?.reset();
 	}, []);
+	const onSubmitted = useCallback(
+		(name: string) => {
+			setYou(name);
+			refresh();
+		},
+		[refresh],
+	);
 
 	const playing = started && game.phase === "playing";
 	const won = started && game.phase === "won";
@@ -301,32 +300,23 @@ function MobileGame() {
 							<br />
 							BANANA BROS
 						</span>
-						<button type="button" className="sbb-m-btn" onClick={start}>
+						<button type="button" className="sbb-btn" onClick={start}>
 							PLAY
 						</button>
 					</div>
 				)}
 
-				{won && (
+				{(won || lost) && (
 					<div className="sbb-overlay sbb-m-overlay">
-						<span className="sbb-overlay-title">YOU WIN!</span>
-						<span className="sbb-overlay-meta">
-							{game.bananas}/{game.total} bananas
+						<span className={`sbb-overlay-title${lost ? " is-lost" : ""}`}>
+							{won ? "YOU WIN!" : "GAME OVER"}
 						</span>
-						<button type="button" className="sbb-m-btn" onClick={restart}>
-							PLAY AGAIN
-						</button>
-					</div>
-				)}
-
-				{lost && (
-					<div className="sbb-overlay sbb-m-overlay">
-						<span className="sbb-overlay-title is-lost">GAME OVER</span>
-						<span className="sbb-overlay-meta">
-							{game.bananas}/{game.total} bananas
-						</span>
-						<button type="button" className="sbb-m-btn" onClick={restart}>
-							RETRY
+						<SubmitScore score={game.score} onSubmitted={onSubmitted} />
+						<div className="sbb-m-board">
+							<ScoreList scores={scores.slice(0, 5)} highlight={you} />
+						</div>
+						<button type="button" className="sbb-btn" onClick={restart}>
+							{won ? "PLAY AGAIN" : "RETRY"}
 						</button>
 					</div>
 				)}

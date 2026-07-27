@@ -9,6 +9,7 @@ export type GameState = {
 	lives: number;
 	time: number;
 	world: string;
+	score: number;
 };
 
 export type GameControls = {
@@ -247,6 +248,7 @@ export default function BananaGame({
 			// ---- run state (persists across worlds within a run) ------------------
 			let currentLevel = 0;
 			let livesLeft = initialLivesRef.current;
+			let runScore = 0;
 
 			// ---- per-scene state --------------------------------------------------
 			let bananas = 0;
@@ -267,6 +269,7 @@ export default function BananaGame({
 					lives: livesLeft,
 					time: clock,
 					world: level.world,
+					score: runScore,
 				});
 			};
 
@@ -281,6 +284,7 @@ export default function BananaGame({
 				}
 			};
 			const doReset = () => {
+				runScore = 0;
 				currentLevel = 0;
 				livesLeft = initialLivesRef.current;
 				k.go("game");
@@ -512,6 +516,7 @@ export default function BananaGame({
 				const advance = () => {
 					if (phase !== "playing" || sceneEnded) return;
 					sceneEnded = true;
+					runScore += 1000;
 					if (currentLevel < LEVELS.length - 1) {
 						currentLevel += 1;
 						k.go("game");
@@ -564,6 +569,7 @@ export default function BananaGame({
 					if (phase !== "playing") return;
 					k.destroy(c);
 					bananas += 1;
+					runScore += 100;
 					snap();
 				});
 
@@ -574,6 +580,7 @@ export default function BananaGame({
 					if (goingDown && onTop) {
 						k.destroy(e);
 						player.jump(JUMP * 0.55);
+						runScore += 250;
 					} else {
 						hitPlayer();
 					}

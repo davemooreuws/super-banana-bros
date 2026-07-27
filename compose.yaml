@@ -1,0 +1,22 @@
+# Backing services for local development.
+#
+# Run the app itself with `bun run dev` (fast Vite HMR) — this only provides the
+# Redis the leaderboard talks to. The app reads REDIS_URL (defaults to
+# redis://localhost:6379); with Redis not running, the leaderboard falls back to
+# an in-memory store so `bun run dev` works on its own.
+#
+#   docker compose up -d        # start Redis
+#
+# Suga can IMPORT this to visualize the project, but it deploys via Suga (MCP/UI),
+# not from this file — see "Deploying to Suga" in the README.
+services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:

@@ -4,21 +4,57 @@
 
 A potassium-boosting masterpiece. A Mario-style platformer starring a banana, across three themed worlds (Grass, Ice, Fire). Built with TanStack Start + Kaplay, deployed with Suga.
 
-# Getting Started
-
-To run this application:
+## Local development
 
 ```bash
 bun install
-bun --bun run dev
+docker compose up -d      # Redis for the leaderboard
+bun run dev               # http://localhost:3000
 ```
 
-# Building For Production
+The app reads `REDIS_URL` (default `redis://localhost:6379`). If Redis isn't
+running the game still works — the leaderboard just shows empty and score
+submissions are skipped.
 
-To build this application for production:
+Build / run production:
 
 ```bash
-bun --bun run build
+bun run build             # outputs .output/server/index.mjs
+bun run start             # node .output/server/index.mjs
+```
+
+## Leaderboard
+
+Scores persist in a **Redis sorted set** (`leaderboard:banana-bros`) via TanStack
+Start server functions in `src/lib/leaderboard.ts` — each run is an independent
+entry (top 100 kept) and initials are profanity-filtered server-side.
+
+> ⚠️ **Scores are unauthenticated.** Initials are just a label and the score is
+> submitted by the client, so anyone can post any score. It's a fun arcade
+> board, not a competitive ranking.
+
+## Deploying to Suga
+
+The app runs on [Suga](https://suga.app) as a container talking to a Redis
+container over private networking. Suga is provisioned via its MCP/UI — **not**
+from `compose.yaml` (that file is for local dev and for visualizing the topology
+in-source).
+
+Paste this to an agent that has the Suga MCP connected:
+
+```text
+Using the Suga MCP, wire up the super-banana-bros project's `production` environment:
+
+1. App container "banana-bros": builds from davemooreuws/super-banana-bros @ main
+   with sugapack (auto-detect, no Dockerfile), start command
+   `node .output/server/index.mjs`, listening on 3000 (public HTTPS + private 3000).
+2. Add a "redis" container: image redis:7-alpine, command
+   `redis-server --appendonly yes`, private-only port 6379, private hostname "redis".
+3. Add a volume mounted at /data on the redis container (AOF persistence).
+4. Set env var REDIS_URL on banana-bros to
+   redis://{{<redis-resource-id>.networking.private.hostname}}:6379
+   (use redis's resource id from get_draft).
+5. Return the review-draft deeplink so I can deploy.
 ```
 
 ## Styling
